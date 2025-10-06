@@ -6,6 +6,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class Transaction extends Model
 {
+    public const DECIMAL_PLACES = 2;
+
     /**
      * The attributes that are mass assignable.
      *
@@ -27,8 +29,8 @@ class Transaction extends Model
     protected function casts(): array
     {
         return [
-            'amount' => 'decimal:2',
-            'commission_fee' => 'decimal:2',
+            'amount' => 'decimal:'.self::DECIMAL_PLACES,
+            'commission_fee' => 'decimal:'.self::DECIMAL_PLACES,
             'metadata' => 'array',
         ];
     }
