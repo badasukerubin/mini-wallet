@@ -8,8 +8,6 @@ use App\Models\Transaction;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 
-use function App\calculateCommissionFee;
-
 class CreateTransactionsController extends Controller
 {
     public function __invoke(CreateTransactionsRequest $request)
@@ -32,7 +30,7 @@ class CreateTransactionsController extends Controller
                 abort(404, 'Sender not found.');
             }
 
-            if (isset($users[$receiverId])) {
+            if (! isset($users[$receiverId])) {
                 abort(404, 'Receiver not found.');
             }
 
