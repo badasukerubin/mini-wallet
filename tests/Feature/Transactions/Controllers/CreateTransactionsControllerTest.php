@@ -1,8 +1,15 @@
 <?php
 
+use App\Events\Transactions\TransactionCreated;
 use App\Models\User;
+use Illuminate\Support\Facades\Event;
 
-it('creates a transaction successfully', function () {
+beforeEach(function () {
+    Event::fake([TransactionCreated::class]);
+
+});
+
+it('creates a transaction successfully and broadcasts to both parties', function () {
     $amountToSend = 100.00;
 
     $sender = User::factory()->create(['balance' => 1000.00]);
@@ -40,9 +47,22 @@ it('creates a transaction successfully', function () {
 
     $receiver->refresh();
     expect($receiver->balance)->toBe('600.00');
-});
 
-it('fails to create a transaction due to insufficient balance', function () {
+    Event::assertDispatched(TransactionCreated::class, function ($event) use ($sender, $receiver) {
+        $channels = collect($event->broadcastOn())->map(fn ($channel) => $channel->name)->all();
+
+        // This event must be sent to both the sender and the receiver.
+        expect($channels)->toContain('private-user.'.$sender->id);
+        expect($channels)->toContain('private-user.'.$receiver->id);
+
+        return $event->transaction->sender_id === $sender->id &&
+            $event->transaction->receiver_id === $receiver->id &&
+            $event->senderBalance === formatAmount((string) $sender->balance) &&
+            $event->receiverBalance === formatAmount((string) $receiver->balance);
+    });
+})->only();
+
+it('fails to create a transaction due to insufficient balance and does not broadcast events', function () {
     $amountToSend = 200.00;
 
     $sender = User::factory()->create(['balance' => 100.00]);
@@ -69,4 +89,6 @@ it('fails to create a transaction due to insufficient balance', function () {
 
     $receiver->refresh();
     expect($receiver->balance)->toBe('500.00');
-});
+
+    Event::assertNotDispatched(TransactionCreated::class);
+})->only();
