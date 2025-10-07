@@ -46,8 +46,6 @@ class TransactionsService
             ]);
         });
 
-        // ds($result);
-
         return $result;
     }
 }
