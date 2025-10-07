@@ -18,7 +18,6 @@ class TransactionResource extends JsonResource
             'id' => $this->id,
             'amount' => $this->amount,
             'commission_fee' => $this->commission_fee,
-            'metadata' => $this->metadata,
             'sender_id' => $this->sender_id,
             'receiver_id' => $this->receiver_id,
             'created_at' => $this->created_at,

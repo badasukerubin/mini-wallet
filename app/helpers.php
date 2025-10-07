@@ -2,6 +2,13 @@
 
 use App\Models\Transaction;
 
+if (! function_exists('formatAmount')) {
+    function formatAmount(string $amount): string
+    {
+        return number_format((float) $amount, Transaction::DECIMAL_PLACES, '.', '');
+    }
+}
+
 if (! function_exists('calculateCommissionFee')) {
     function calculateCommissionFee(string $amount): string
     {
@@ -10,6 +17,6 @@ if (! function_exists('calculateCommissionFee')) {
 
         $fee = bcmul($amount, (string) $feePercentage, Transaction::DECIMAL_PLACES);
 
-        return number_format((float) $fee, Transaction::DECIMAL_PLACES, '.', '');
+        return formatAmount($fee);
     }
 }

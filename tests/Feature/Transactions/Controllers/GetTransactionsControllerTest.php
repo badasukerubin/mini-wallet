@@ -31,7 +31,6 @@ it('returns the auth user transactions', function () {
                         'id',
                         'amount',
                         'commission_fee',
-                        'metadata',
                         'sender_id',
                         'receiver_id',
                         'created_at',

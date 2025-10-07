@@ -20,7 +20,6 @@ class TransactionFactory extends Factory
         return [
             'amount' => $this->faker->randomFloat(2, 1, 1000),
             'commission_fee' => $this->faker->randomFloat(2, 0, 10),
-            'metadata' => ['note' => $this->faker->sentence()],
             'sender_id' => User::factory(),
             'receiver_id' => User::factory(),
         ];

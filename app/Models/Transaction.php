@@ -5,10 +5,9 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-
 class Transaction extends Model
 {
-     /** @use HasFactory<\Database\Factories\TransactionFactory> */
+    /** @use HasFactory<\Database\Factories\TransactionFactory> */
     use HasFactory;
 
     public const DECIMAL_PLACES = 2;
@@ -21,7 +20,6 @@ class Transaction extends Model
     protected $fillable = [
         'amount',
         'commission_fee',
-        'metadata',
         'sender_id',
         'receiver_id',
     ];
@@ -36,7 +34,6 @@ class Transaction extends Model
         return [
             'amount' => 'decimal:'.self::DECIMAL_PLACES,
             'commission_fee' => 'decimal:'.self::DECIMAL_PLACES,
-            'metadata' => 'array',
         ];
     }
 

@@ -30,7 +30,7 @@ class GetTransactionsController extends Controller
 
         return response()->json([
             'data' => [
-                'balance' => number_format((float) $user->balance, Transaction::DECIMAL_PLACES, '.', ''),
+                'balance' => formatAmount((string) $user->balance),
                 'transactions' => TransactionResource::collection($paginated),
                 'meta' => [
                     'pagination' => [

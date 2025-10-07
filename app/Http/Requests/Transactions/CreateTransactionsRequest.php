@@ -9,7 +9,6 @@ use Illuminate\Foundation\Http\FormRequest;
  *
  * @property int $receiver_id
  * @property float $amount
- *
  */
 class CreateTransactionsRequest extends FormRequest
 {
@@ -29,7 +28,7 @@ class CreateTransactionsRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'receiver_id' => ['required', 'exists:users,id', 'different:auth_user'],
+            'receiver_id' => ['required', 'exists:users,id'],
             'amount' => ['required', 'numeric', 'min:0.01'],
         ];
     }

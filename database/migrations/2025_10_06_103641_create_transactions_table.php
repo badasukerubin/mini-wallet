@@ -16,7 +16,6 @@ return new class extends Migration
 
             $table->decimal('amount', 18, 2);
             $table->decimal('commission_fee', 18, 2);
-            $table->jsonb('metadata')->nullable();
 
             $table->foreignId('sender_id')->constrained('users')->nullOnDelete();
             $table->foreignId('receiver_id')->constrained('users')->nullOnDelete();
