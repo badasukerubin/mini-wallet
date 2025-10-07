@@ -4,11 +4,12 @@ namespace App\Http\Controllers\Transactions;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Transactions\CreateTransactionsRequest;
-use App\Services\TransferService;
+use App\Services\Transactions\TransactionsService;
+use Exception;
 
 class CreateTransactionsController extends Controller
 {
-    public function __construct(private TransferService $transfer) {}
+    public function __construct(private TransactionsService $transactionService) {}
 
     public function __invoke(CreateTransactionsRequest $request)
     {
@@ -16,8 +17,8 @@ class CreateTransactionsController extends Controller
         $sender = $request->user();
 
         try {
-            $transaction = $this->transfer->handle($sender, (int) $request->receiver_id, (string) $request->amount);
-        } catch (\RuntimeException $e) {
+            $transaction = $this->transactionService->handle($sender, (int) $request->receiver_id, (string) $request->amount);
+        } catch (Exception $e) {
             return response()->json(['message' => $e->getMessage()], 422);
         }
 

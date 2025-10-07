@@ -1,12 +1,12 @@
 <?php
 
-namespace App\Services;
+namespace App\Services\Transactions;
 
 use App\Models\Transaction;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 
-class TransferService
+class TransactionsService
 {
     public function handle(User $sender, int $receiverId, string $amount): Transaction
     {
@@ -45,6 +45,8 @@ class TransferService
                 'metadata' => null,
             ]);
         });
+
+        // ds($result);
 
         return $result;
     }

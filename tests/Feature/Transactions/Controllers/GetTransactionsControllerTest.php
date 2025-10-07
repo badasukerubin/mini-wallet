@@ -48,4 +48,4 @@ it('returns the auth user transactions', function () {
             ],
 
         ]);
-})->only();
+});

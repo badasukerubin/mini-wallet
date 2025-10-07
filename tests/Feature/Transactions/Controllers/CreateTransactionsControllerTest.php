@@ -36,7 +36,7 @@ it('creates a transaction successfully', function () {
 
     $receiver->refresh();
     expect($receiver->balance)->toBe('600.00');
-})->only();
+});
 
 it('fails to create a transaction due to insufficient balance', function () {
     $amountToSend = 200.00;
@@ -65,4 +65,4 @@ it('fails to create a transaction due to insufficient balance', function () {
 
     $receiver->refresh();
     expect($receiver->balance)->toBe('500.00');
-})->only();
+});

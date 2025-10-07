@@ -13,7 +13,11 @@
 
 pest()->extend(Tests\TestCase::class)
     ->use(Illuminate\Foundation\Testing\RefreshDatabase::class)
-    ->in('Feature');
+    ->in('Feature/Auth', 'Feature/Settings', 'Feature/Transactions/Controllers');
+
+pest()->extend(Tests\TestCase::class)
+    ->use(Illuminate\Foundation\Testing\DatabaseMigrations::class)
+    ->in('Feature/Transactions/Concurrency');
 
 /*
 |--------------------------------------------------------------------------
