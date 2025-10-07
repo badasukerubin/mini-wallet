@@ -11,6 +11,8 @@
 |
 */
 
+use Symfony\Component\Process\Process;
+
 pest()->extend(Tests\TestCase::class)
     ->use(Illuminate\Foundation\Testing\RefreshDatabase::class)
     ->in('Feature/Auth', 'Feature/Settings', 'Feature/Transactions/Controllers');
@@ -45,7 +47,51 @@ expect()->extend('toBeOne', function () {
 |
 */
 
-function something()
+function transferProcessEnv(): array
 {
-    // ..
+    return array_merge($_ENV, [
+        'APP_ENV' => 'testing',
+        'DB_CONNECTION' => env('DB_CONNECTION'),
+        'DB_HOST' => env('DB_HOST'),
+        'DB_PORT' => env('DB_PORT'),
+        'DB_DATABASE' => env('DB_DATABASE'),
+        'DB_USERNAME' => env('DB_USERNAME'),
+        'DB_PASSWORD' => env('DB_PASSWORD'),
+    ]);
+}
+
+function spawnTransferProcess(int $senderId, int $receiverId, string $amount): Process
+{
+    $cmd = [
+        PHP_BINARY,
+        base_path('artisan'),
+        'app:create-transactions',
+        '--sender_id='.$senderId,
+        '--receiver_id='.$receiverId,
+        '--amount='.$amount,
+        '--env=testing',
+    ];
+
+    $process = new Process($cmd);
+    $process->setEnv(transferProcessEnv());
+    $process->setTimeout(60);
+    $process->start();
+
+    return $process;
+}
+
+function waitAllProcesses(array $processes): array
+{
+    $results = [];
+    foreach ($processes as $process) {
+        $process->wait();
+        $results[] = [
+            'success' => $process->isSuccessful(),
+            'output' => $process->getOutput(),
+            'error' => $process->getErrorOutput(),
+            'exit' => $process->getExitCode(),
+        ];
+    }
+
+    return $results;
 }
