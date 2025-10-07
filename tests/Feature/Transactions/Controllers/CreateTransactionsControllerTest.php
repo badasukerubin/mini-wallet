@@ -32,6 +32,10 @@ it('creates a transaction successfully', function () {
     ]);
 
     $sender->refresh();
+
+    // Commission calculation: 0.5% of 100.00 = 0.50
+    // Total debit = 100.00 + 1.50 = 101.50
+    // New balance = 1000.00 - 101.50 = 898.50
     expect($sender->balance)->toBe('898.50');
 
     $receiver->refresh();

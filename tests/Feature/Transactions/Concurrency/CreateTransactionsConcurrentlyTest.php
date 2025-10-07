@@ -1,7 +1,5 @@
 <?php
 
-uses(Illuminate\Foundation\Testing\DatabaseMigrations::class);
-
 use App\Models\Transaction;
 use App\Models\User;
 

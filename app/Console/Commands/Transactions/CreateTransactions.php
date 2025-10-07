@@ -53,11 +53,9 @@ class CreateTransactions extends Command
 
             // For demonstration purposes, we'll just print the details
             $this->info("Transaction successful: Trnsaction ID: {$transaction->id}, Sender ID: {$senderId}, Receiver ID: {$receiverId}, Amount: {$amount}");
-            ds('test');
 
             return Command::SUCCESS;
         } catch (Exception $e) {
-            ds($e->getMessage());
             $this->error('Transaction failed: '.$e->getMessage());
             Log::error('Transaction failed', ['error' => $e->getMessage()]);
 
