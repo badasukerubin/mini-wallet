@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import CreateTransactionsController from '@/actions/App/Http/Controllers/Transactions/CreateTransactionsController';
 import GetTransactionsController from '@/actions/App/Http/Controllers/Transactions/GetTransactionsController';
 import api from '@/bootstrap';
 import { Button } from '@/components/ui/button';
@@ -7,8 +8,9 @@ import { Label } from '@/components/ui/label';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { dashboard } from '@/routes';
 import { APIResponse, GetTransactionsControllerResponse, Transaction, type BreadcrumbItem } from '@/types';
-import { Head, useForm, usePage } from '@inertiajs/vue3';
-import { onMounted, ref } from 'vue';
+import { Head, usePage } from '@inertiajs/vue3';
+import { LoaderCircle } from 'lucide-vue-next';
+import { onMounted, reactive, ref } from 'vue';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -21,7 +23,7 @@ const page = usePage();
 const user = page.props.auth.user;
 const currentUserId = user.id;
 
-const form = useForm({
+const form = reactive({
   receiver_id: '',
   amount: '',
 });
@@ -44,24 +46,33 @@ async function loadTransactions() {
   }
 }
 
-function submit() {
+async function submit() {
   errorMessage.value = null;
   loading.value = true;
 
-  form.post('/api/transactions', {
-    preserveState: false,
-    onSuccess: (page) => {
-      form.reset('receiver_id', 'amount');
-    },
-    onError: (errors) => {
-      errorMessage.value = Object.values(errors).flat().join(' ');
-    },
-    onFinish: () => {
-      loading.value = false;
-      // reload balance + transactions after POST (also real-time events will update)
-      loadTransactions();
-    },
-  });
+  try {
+    await api.post(CreateTransactionsController.post().url, {
+      receiver_id: form.receiver_id,
+      amount: form.amount,
+    });
+
+    // success: clear form and reload
+    form.receiver_id = '';
+    form.amount = '';
+    await loadTransactions();
+  } catch (err: any) {
+    const resp = err?.response;
+    if (resp?.status === 422 && resp.data?.errors) {
+      errorMessage.value = Object.values(resp.data.errors).flat().join(' ');
+    } else if (resp?.data?.message) {
+      errorMessage.value = resp.data.message;
+    } else {
+      errorMessage.value = 'Request failed';
+    }
+    // console.error('[Transfer] submit error', resp ?? err);
+  } finally {
+    loading.value = false;
+  }
 }
 
 /**
@@ -69,28 +80,30 @@ function submit() {
  * and update local balance/transactions in real time.
  */
 function setupRealtime() {
-  // window.Echo is expected to be configured in your app bootstrap
   const Echo = (window as any).Echo;
-  if (!Echo || !currentUserId) return;
+
+  if (!Echo || !currentUserId) {
+    return
+};
 
   Echo.private(`user.${currentUserId}`).listen('TransactionCreated', (payload: any) => {
     try {
-      const tx = payload.transaction;
+      const transaction = payload.transaction;
       const balances = payload.balances ?? {};
 
       // Update balance if payload contains it
-      if (tx.sender_id === currentUserId && balances.sender) {
+      if (transaction.sender_id === currentUserId && balances.sender) {
         balance.value = balances.sender;
-      } else if (tx.receiver_id === currentUserId && balances.receiver) {
+      } else if (transaction.receiver_id === currentUserId && balances.receiver) {
         balance.value = balances.receiver;
       }
 
       // Prepend transaction if relevant to this user
-      if (tx.sender_id === currentUserId || tx.receiver_id === currentUserId) {
-        transactions.value = [tx, ...transactions.value].slice(0, 50); // keep recent 50
+      if (transaction.sender_id === currentUserId || transaction.receiver_id === currentUserId) {
+        transactions.value = [transaction, ...transactions.value].slice(0, 50); // keep recent 50
       }
     } catch (e) {
-      // ignore malformed payloads
+      console.error('Error processing TransactionCreated event', e);
     }
   });
 }
@@ -114,11 +127,11 @@ onMounted(async () => {
         </div>
 
         <!-- Transfer form -->
-        <div class="rounded-lg border p-4 col-span-1 md:col-span-2">
-          <h3 class="text-sm text-muted-foreground mb-4">Send funds</h3>
+        <div class="rounded-lg border p-4 col-span-1 md:col-span-2" @submit.prevent="submit" method="post">
+        <h3 class="text-sm text-muted-foreground mb-4">Transfer</h3>
 
-          <div class="grid gap-4 sm:grid-cols-2">
-            <div>
+        <form @submit.prevent="submit" class="grid gap-4 sm:grid-cols-2">
+             <div class="grid gap-2">
               <Label for="receiver">Recipient user ID</Label>
               <Input
                 id="receiver"
@@ -127,9 +140,10 @@ onMounted(async () => {
                 placeholder="Recipient user id"
                 autocomplete="off"
               />
+
             </div>
 
-            <div>
+             <div class="grid gap-2">
               <Label for="amount">Amount</Label>
               <Input
                 id="amount"
@@ -139,18 +153,27 @@ onMounted(async () => {
                 inputmode="decimal"
               />
             </div>
-          </div>
 
-          <div class="mt-4 flex items-center gap-3">
-            <Button type="button" :disabled="loading" @click="submit">
-              <span v-if="!loading">Send</span>
-              <span v-else>Sending…</span>
-            </Button>
+            <div class="flex items-center flex-row gap-4 sm:col-span-2">
+                <Button
+                    type="submit"
+                    :tabindex="4"
+                    :disabled="loading"
+                    data-test="login-button"
+                >
+                    <LoaderCircle
+                        v-if="loading"
+                        class="h-4 w-4 animate-spin"
+                    />
+                    Send
+                </Button>
 
-            <div v-if="errorMessage" class="text-sm text-red-600">
-              {{ errorMessage }}
+                <div v-if="errorMessage" class="text-sm text-red-600">
+                {{ errorMessage }}
+                </div>
             </div>
-          </div>
+        </form>
+
 
           <p class="mt-3 text-xs text-muted-foreground">
             Commission: 1.5% (debited from sender). Amounts shown with 2 decimal places.
@@ -167,22 +190,22 @@ onMounted(async () => {
         </div>
 
         <ul class="divide-y">
-          <li v-for="tx in transactions" :key="tx.id" class="py-2 flex justify-between">
+          <li v-for="transaction in transactions" :key="transaction.id" class="py-2 flex justify-between">
             <div>
               <div class="text-sm">
-                <strong v-if="tx.sender_id === currentUserId">Sent</strong>
+                <strong v-if="transaction.sender_id === currentUserId">Sent</strong>
                 <strong v-else>Received</strong>
-                <span class="ml-2 text-muted-foreground text-xs">#{{ tx.id }}</span>
+                <span class="ml-2 text-muted-foreground text-xs">#{{ transaction.id }}</span>
               </div>
               <div class="text-xs text-muted-foreground">
-                {{ new Date(tx.created_at).toLocaleString() }}
+                {{ new Date(transaction.created_at).toLocaleString() }}
               </div>
             </div>
             <div class="text-right">
-              <div :class="tx.sender_id === currentUserId ? 'text-red-600' : 'text-green-600'">
-                {{ tx.sender_id === currentUserId ? '-' : '+' }}${{ parseFloat(tx.amount).toFixed(2) }}
+              <div :class="transaction.sender_id === currentUserId ? 'text-red-600' : 'text-green-600'">
+                {{ transaction.sender_id === currentUserId ? '-' : '+' }}${{ parseFloat(transaction.amount).toFixed(2) }}
               </div>
-              <div class="text-xs text-muted-foreground">Fee: ${{ parseFloat(tx.commission_fee).toFixed(2) }}</div>
+              <div class="text-xs text-muted-foreground">Fee: ${{ parseFloat(transaction.commission_fee).toFixed(2) }}</div>
             </div>
           </li>
         </ul>

@@ -14,7 +14,6 @@ class CreateTransactionsController extends Controller
 
     public function __invoke(CreateTransactionsRequest $request)
     {
-
         $sender = $request->user();
 
         try {
