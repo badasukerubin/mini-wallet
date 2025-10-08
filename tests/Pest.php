@@ -15,7 +15,7 @@ use Symfony\Component\Process\Process;
 
 pest()->extend(Tests\TestCase::class)
     ->use(Illuminate\Foundation\Testing\RefreshDatabase::class)
-    ->in('Feature/Auth', 'Feature/Settings', 'Feature/Transactions/Controllers', 'Feature/Transactions/Scale', 'Feature/Transactions/Integrity');
+    ->in('Feature/Auth', 'Feature/Settings', 'Feature/Transactions/Controllers', 'Feature/Transactions/Scale', 'Feature/Transactions/Integrity', 'Feature/Transactions/Validation');
 
 pest()->extend(Tests\TestCase::class)
     ->use(Illuminate\Foundation\Testing\DatabaseMigrations::class)

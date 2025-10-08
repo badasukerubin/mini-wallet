@@ -203,9 +203,9 @@ onMounted(async () => {
             </div>
             <div class="text-right">
               <div :class="transaction.sender_id === currentUserId ? 'text-red-600' : 'text-green-600'">
-                {{ transaction.sender_id === currentUserId ? '-' : '+' }}${{ parseFloat(transaction.amount).toFixed(2) }}
+                {{ transaction.sender_id === currentUserId ? '-' : '+' }}${{ transaction.amount }}
               </div>
-              <div class="text-xs text-muted-foreground">Fee: ${{ parseFloat(transaction.commission_fee).toFixed(2) }}</div>
+              <div class="text-xs text-muted-foreground">Fee: ${{ transaction.commission_fee }}</div>
             </div>
           </li>
         </ul>
