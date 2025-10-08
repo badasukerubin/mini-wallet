@@ -60,7 +60,7 @@ it('creates a transaction successfully and broadcasts to both parties', function
             $event->senderBalance === formatAmount((string) $sender->balance) &&
             $event->receiverBalance === formatAmount((string) $receiver->balance);
     });
-})->only();
+});
 
 it('fails to create a transaction due to insufficient balance and does not broadcast events', function () {
     $amountToSend = 200.00;
@@ -91,4 +91,4 @@ it('fails to create a transaction due to insufficient balance and does not broad
     expect($receiver->balance)->toBe('500.00');
 
     Event::assertNotDispatched(TransactionCreated::class);
-})->only();
+});

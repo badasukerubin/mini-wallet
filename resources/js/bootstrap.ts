@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const api = axios.create({
-    baseURL: '/api/v1',
+    baseURL: '',
     withCredentials: true,
     headers: {
         Accept: 'application/json',
@@ -9,15 +9,8 @@ const api = axios.create({
     },
 });
 
-const token = document.head
-    ?.querySelector('meta[name="csrf-token"]')
-    ?.getAttribute('content');
-
-if (token) {
-    api.defaults.headers.common['X-CSRF-TOKEN'] = token;
-}
-
-// api.get('/sanctum/csrf-cookie').catch(() => { });
+api.defaults.withCredentials = true;
+api.defaults.withXSRFToken = true;
 
 api.interceptors.response.use(
     (res) => res,
@@ -26,6 +19,5 @@ api.interceptors.response.use(
     },
 );
 
-// expose for convenient imports
 export default api;
 export { api };

@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { dashboard } from '@/routes';
-import { Transaction, type BreadcrumbItem } from '@/types';
+import { APIResponse, GetTransactionsControllerResponse, Transaction, type BreadcrumbItem } from '@/types';
 import { Head, useForm, usePage } from '@inertiajs/vue3';
 import { onMounted, ref } from 'vue';
 
@@ -33,15 +33,14 @@ const errorMessage = ref<string | null>(null);
 
 async function loadTransactions() {
   try {
-    // uses axios configured baseURL '/api/v1' so this calls GET /api/v1/transactions
-    const res = await api.get('/transactions', { params: { per_page: 20 } });
+    const res = await api.get<APIResponse<GetTransactionsControllerResponse>>(GetTransactionsController.get().url, { params: { per_page: 20 } });
     const payload = res.data?.data;
-    // helpful debug
-    // console.log('[Transfer] GET /api/v1/transactions', payload);
+
+    console.log('[Transfer] GET /api/v1/transactions', payload);
     balance.value = payload?.balance ?? balance.value;
-    transactions.value = payload?.transactions?.data ?? [];
+    transactions.value = payload?.transactions ?? [];
   } catch (e) {
-    // silent
+    console.error(e);
   }
 }
 

@@ -47,3 +47,24 @@ export interface Transaction extends Model {
 }
 
 export type BreadcrumbItemType = BreadcrumbItem;
+
+export interface APIResponse<T> {
+    data: T;
+}
+
+export interface GetTransactionsControllerResponse {
+    balance: string;
+    meta: PaginationMeta;
+    transactions: Transaction[];
+}
+
+export interface PaginationMeta {
+    pagination: Pagination;
+}
+
+export interface Pagination {
+    current_page: number;
+    last_page: number;
+    per_page: number;
+    total: number;
+}
