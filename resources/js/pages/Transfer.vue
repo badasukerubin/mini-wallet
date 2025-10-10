@@ -38,7 +38,7 @@ async function loadTransactions() {
     const res = await api.get<APIResponse<GetTransactionsControllerResponse>>(GetTransactionsController.get().url, { params: { per_page: 20 } });
     const payload = res.data?.data;
 
-    console.log('[Transfer] GET /api/v1/transactions', payload);
+
     balance.value = payload?.balance ?? balance.value;
     transactions.value = payload?.transactions ?? [];
   } catch (e) {
