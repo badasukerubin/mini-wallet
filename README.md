@@ -2,7 +2,7 @@
 
 ![Mini Wallet](public/art/image.png)
 
-This repository is a compact, production‑minded mini digital wallet built with Laravel (API) + Vue 3 (Inertia) designed for high concurrency and large datasets. It focuses on correctness, scalability and testability.
+This repository is a monolithic, production‑minded mini digital wallet built with Laravel (API) + Vue 3 (Inertia) designed for high concurrency and large datasets. It focuses on correctness, scalability and testability.
 
 Key features
 
@@ -12,7 +12,7 @@ Key features
 - Real‑time updates via Laravel broadcasting (Pusher / Echo) on private `user.{id}` channels.
 - Test driven development: Pest / PHPUnit tests (unit, feature, concurrency and optional benchmarks).
 - Frontend: Inertia + Vue 3 (Composition API) simple Transfer page that listens to real‑time events.
-- Real-time form validation with laravel‑precognition.
+- Real-time form validation with `laravel‑precognition`.
 
 Why these architecture choices (senior summary)
 
@@ -40,7 +40,7 @@ Quickstart (development)
         - Tolu: tolu@example.com / password
 4. Serve
     - php artisan serve
-    - npm run dev (if using Vite dev server)
+    - npm run dev
 
 API
 
@@ -65,7 +65,7 @@ Concurrency & testing strategy
 - Concurrency tests: placed under `tests/Concurrency` and use DatabaseMigrations (no wrapping transaction). Each concurrent worker is an isolated PHP process (artisan command `app:create-transactions`) which uses the same testing DB via explicit environment propagation.
     - Why? RefreshDatabase opens a transaction in the test process — other DB sessions (child processes) won't see uncommitted data or schema; this hides real lock contention. Separate processes mimic real concurrent DB sessions and therefore reveal race conditions, deadlocks and integrity issues.
 - Files:
-    - tests/Concurrency/CreateTransactionsConcurrentlyTest.php — multiple scenarios (many concurrent transfers, overdraft protections, many senders -> one receiver).
+    - tests/Feature/Transactions/Concurrency/CreateTransactionsConcurrentlyTest.php — multiple scenarios (many concurrent transfers, overdraft protections, many senders -> one receiver).
     - tests/Feature/... — correctness, validation, atomic rollback, scale checks and benchmarks (gated).
 - Concurrency helpers:
     - spawnTransferProcess() — builds Symfony Process with `--env=testing` and DB env vars propagated.
@@ -95,11 +95,10 @@ TransactionsService (core)
     - lock both users with lockForUpdate, ordered by id
     - balance checks via bccomp
     - update user balances and persist transaction ledger
-- Optional: test hook to simulate mid-transaction failure — used in integrity tests to ensure rollback.
 
 Broadcasting
 
-- Event: `App\Events\Transactions\TransactionCreated` implements ShouldBroadcastNow for immediate broadcast (no queue in tests).
+- Event: `App\Events\Transactions\TransactionCreated` implements ShouldBroadcastNow for immediate broadcast (no queues).
 - Broadcast channels: `private-user.{id}` — frontend subscribes and updates balance + transactions list in real time.
 - Configure broadcasting driver and Pusher credentials in .env for full end-to-end testing.
 
