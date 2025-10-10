@@ -10,6 +10,7 @@ Key features
 - Real‑time updates via Laravel broadcasting (Pusher / Echo) on private `user.{id}` channels.
 - Test driven development: Pest / PHPUnit tests (unit, feature, concurrency and optional benchmarks).
 - Frontend: Inertia + Vue 3 (Composition API) simple Transfer page that listens to real‑time events.
+- Real-time form validation with laravel‑precognition.
 
 Why these architecture choices (senior summary)
 

@@ -14,8 +14,9 @@ import {
     type BreadcrumbItem,
 } from '@/types';
 import { Head, usePage } from '@inertiajs/vue3';
+import { useForm } from 'laravel-precognition-vue';
 import { LoaderCircle } from 'lucide-vue-next';
-import { onMounted, reactive, ref } from 'vue';
+import { onMounted, ref } from 'vue';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -28,7 +29,7 @@ const page = usePage();
 const user = page.props.auth.user;
 const currentUserId = user.id;
 
-const form = reactive({
+const form = useForm('post', CreateTransactionsController.post().url, {
     receiver_id: '',
     amount: '',
 });
@@ -57,27 +58,15 @@ async function submit() {
     loading.value = true;
 
     try {
-        await api.post(CreateTransactionsController.post().url, {
-            receiver_id: form.receiver_id,
-            amount: form.amount,
-        });
+        await form.submit();
 
-        // success: clear form and reload
-        form.receiver_id = '';
-        form.amount = '';
+        form.reset();
         await loadTransactions();
     } catch (err: any) {
         const resp = err?.response;
-        if (resp?.status === 422 && resp.data?.errors) {
-            errorMessage.value = Object.values(resp.data.errors)
-                .flat()
-                .join(' ');
-        } else if (resp?.data?.message) {
+        if (resp?.data?.message) {
             errorMessage.value = resp.data.message;
-        } else {
-            errorMessage.value = 'Request failed';
         }
-        // console.error('[Transfer] submit error', resp ?? err);
     } finally {
         loading.value = false;
     }
@@ -160,13 +149,21 @@ onMounted(async () => {
                         <div class="grid gap-2">
                             <Label for="receiver">Recipient user ID</Label>
                             <Input id="receiver" v-model="form.receiver_id" type="number"
-                                placeholder="Recipient user id" autocomplete="off" />
+                                placeholder="Recipient user id" autocomplete="off"
+                                @change="form.validate('receiver_id')" />
+
+                            <div v-if="form.invalid('receiver_id')" class="text-sm text-red-600">
+                                {{ form.errors.receiver_id }}
+                            </div>
                         </div>
 
                         <div class="grid gap-2">
                             <Label for="amount">Amount</Label>
-                            <Input id="amount" v-model="form.amount" type="text" placeholder="0.00"
-                                inputmode="decimal" />
+                            <Input id="amount" v-model="form.amount" type="text" placeholder="0.00" inputmode="decimal"
+                                @change="form.validate('amount')" />
+                            <div v-if="form.invalid('amount')" class="text-sm text-red-600">
+                                {{ form.errors.amount }}
+                            </div>
                         </div>
 
                         <div class="flex flex-row items-center gap-4 sm:col-span-2">
