@@ -75,7 +75,7 @@ it('fails to create a transaction due to insufficient balance and does not broad
 
     $response->assertStatus(422)
         ->assertJson([
-            'message' => 'Insufficient balance.',
+            'message' => 'Insufficient balance to cover amount plus commission (1.5%).',
         ]);
 
     $this->assertDatabaseMissing('transactions', [
