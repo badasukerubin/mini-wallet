@@ -68,3 +68,11 @@ export interface Pagination {
     per_page: number;
     total: number;
 }
+
+export interface TransactionCreatedEventPayload {
+    transaction: Transaction;
+    balances: {
+        sender: string;
+        receiver: string;
+    };
+}

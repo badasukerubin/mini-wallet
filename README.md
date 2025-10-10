@@ -1,5 +1,7 @@
 # Mini Wallet — High‑Performance Edition
 
+![Mini Wallet](public/art/image.png)
+
 This repository is a compact, production‑minded mini digital wallet built with Laravel (API) + Vue 3 (Inertia) designed for high concurrency and large datasets. It focuses on correctness, scalability and testability.
 
 Key features

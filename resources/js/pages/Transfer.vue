@@ -11,9 +11,11 @@ import {
     APIResponse,
     GetTransactionsControllerResponse,
     Transaction,
+    TransactionCreatedEventPayload,
     type BreadcrumbItem,
 } from '@/types';
 import { Head, usePage } from '@inertiajs/vue3';
+import { useEcho } from "@laravel/echo-vue";
 import { useForm } from 'laravel-precognition-vue';
 import { LoaderCircle } from 'lucide-vue-next';
 import { onMounted, ref } from 'vue';
@@ -61,7 +63,6 @@ async function submit() {
         await form.submit();
 
         form.reset();
-        await loadTransactions();
     } catch (err: any) {
         const resp = err?.response;
         if (resp?.data?.message) {
@@ -72,57 +73,48 @@ async function submit() {
     }
 }
 
-/**
- * Listen for server broadcasts (Laravel Echo) on the private user channel
- * and update local balance/transactions in real time.
- */
-function setupRealtime() {
-    const Echo = (window as any).Echo;
+useEcho(`user.${currentUserId}`, '.transaction.created',
+    (payload: TransactionCreatedEventPayload) => {
+        try {
+            const transaction = payload.transaction;
+            const balances = payload.balances ?? {};
 
-    if (!Echo || !currentUserId) {
-        return;
-    }
-
-    Echo.private(`user.${currentUserId}`).listen(
-        'TransactionCreated',
-        (payload: any) => {
-            try {
-                const transaction = payload.transaction;
-                const balances = payload.balances ?? {};
-
-                // Update balance if payload contains it
-                if (
-                    transaction.sender_id === currentUserId &&
-                    balances.sender
-                ) {
-                    balance.value = balances.sender;
-                } else if (
-                    transaction.receiver_id === currentUserId &&
-                    balances.receiver
-                ) {
-                    balance.value = balances.receiver;
-                }
-
-                // Prepend transaction if relevant to this user
-                if (
-                    transaction.sender_id === currentUserId ||
-                    transaction.receiver_id === currentUserId
-                ) {
-                    transactions.value = [
-                        transaction,
-                        ...transactions.value,
-                    ].slice(0, 50); // keep recent 50
-                }
-            } catch (e) {
-                console.error('Error processing TransactionCreated event', e);
+            // Update balance if payload contains it
+            if (
+                transaction.sender_id === currentUserId &&
+                balances.sender
+            ) {
+                balance.value = balances.sender;
+            } else if (
+                transaction.receiver_id === currentUserId &&
+                balances.receiver
+            ) {
+                balance.value = balances.receiver;
             }
-        },
-    );
-}
+
+            // Prepend transaction if relevant to this user
+            if (
+                transaction.sender_id === currentUserId ||
+                transaction.receiver_id === currentUserId
+            ) {
+                transactions.value = [
+                    transaction,
+                    ...transactions.value,
+                ].slice(0, 50); // keep recent 50
+            }
+        } catch (e) {
+            console.error('Error processing TransactionCreated event', e);
+        }
+    },
+);
+
+
+
+
+
 
 onMounted(async () => {
     await loadTransactions();
-    setupRealtime();
 });
 </script>
 
