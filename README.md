@@ -14,7 +14,7 @@ Key features
 - Frontend: Inertia + Vue 3 (Composition API) simple Transfer page that listens to real‑time events.
 - Real-time form validation with `laravel‑precognition`.
 
-Why these architecture choices (senior summary)
+Why these architecture choices
 
 - Balance storage on users table: Reading a user's balance must be constant time even with millions of transactions. Persisting balance on the user row and maintaining a transaction ledger provides both fast reads and full auditability.
 - Use DB transactions + SELECT ... FOR UPDATE (lockForUpdate): prevents race conditions and ensures updates are atomic across sender and receiver rows. Order locks by user id to avoid deadlocks.
